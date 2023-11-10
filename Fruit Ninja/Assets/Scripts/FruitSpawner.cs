@@ -5,6 +5,8 @@ public class FruitSpawner : MonoBehaviour
 
     private float _currentDelay = 0f;
 
+    private Collider _spawnZone;
+
     public float minDelay = 0.2f;
     public float maxDelay = 0.9f;
     public float angleRangeZ = 20f;
@@ -19,7 +21,13 @@ public class FruitSpawner : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        FillComponents();
         SetNewDelay();
+    }
+
+    private void FillComponents()
+    {
+        _spawnZone = GetComponent<Collider>();
     }
 
     private void SetNewDelay()
@@ -44,10 +52,20 @@ public class FruitSpawner : MonoBehaviour
 
     private void SpawnFruit()
     {
+        Vector3 StartPosition = GetRandomSpawnPosition();
         Quaternion startRotation = Quaternion.Euler(0f, 0f, Random.Range(-angleRangeZ, angleRangeZ));
-        GameObject newFruit = Instantiate(GetRandomFruit(), transform.position, startRotation);
+        GameObject newFruit = Instantiate(GetRandomFruit(), StartPosition, startRotation);
         Destroy(newFruit, lifeTime);
         AddForce(newFruit);
+    }
+
+    private Vector3 GetRandomSpawnPosition()
+    {
+        Vector3 pos;
+        pos.x = Random.Range(_spawnZone.bounds.min.x, -_spawnZone.bounds.max.x);
+        pos.y = Random.Range(_spawnZone.bounds.min.y, -_spawnZone.bounds.max.y);
+        pos.z = Random.Range(_spawnZone.bounds.min.z, -_spawnZone.bounds.max.z);
+        return pos;
     }
 
     private GameObject GetRandomFruit()
