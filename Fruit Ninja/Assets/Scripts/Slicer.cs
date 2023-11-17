@@ -7,6 +7,11 @@ public class Slicer : MonoBehaviour
     private Collider _slicerTrigger;
     private Camera _mainCamera;
     private Vector3 _direction;
+    // Скрипт счётчика очков
+    public Score Score;
+    // Скрипт счётчика жизней
+    public Health Health;
+    public GameEnder GameEnder;
 
     void Start()
     {
@@ -78,13 +83,63 @@ public class Slicer : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        // Проверяем, является ли объект фруктом
+        CheckFriut(other);
 
+        // Проверяем, является ли объект бомбой
+        CheckBomb(other);
+    }
+
+    private void CheckFriut(Collider other)
+    {
+        // Создаём переменную для фрукта, которого мы коснулись
         Fruit fruit = other.GetComponent<Fruit>();
+
+        // Проверяем, является ли объект фруктом
+        // Здесь также можно написать if (!fruit)
         if (fruit == null)
+        {
+            // Если объект — не фрукт, выходим из метода
+            return;
+        }
+
+        // Режем фрукт в заданном направлении с учётом позиции курсора и силы разрезания
+        fruit.Slice(_direction, transform.position, SliceForce);
+
+        // Получаем одно очко
+        Score.AddScore(1);
+    }
+
+    private void CheckBomb(Collider other)
+    {
+        Bomb bomb = other.GetComponent<Bomb>();
+        if (bomb == null) // тут можно было написать if(!bomb)
         {
             return;
         }
 
-        fruit.Slice(_direction, transform.position, SliceForce);
+        Destroy(bomb.gameObject);
+        Health.RemoveHealth();
+        CheckHealthEnd(Health.GetCurrentHealth());
+
+    }
+
+
+    private void CheckHealthEnd(int health)
+    {
+        // Если количество жизней больше нуля
+        if (health > 0)
+        {
+            // Возвращаемся из метода, игра продолжается
+            return;
+        }
+
+        // Иначе вызываем метод StopGame()
+        StopGame();
+    }
+
+    private void StopGame()
+    {
+        GameEnder.EndGame();
     }
 }

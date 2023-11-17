@@ -2,7 +2,6 @@ using UnityEngine;
 
 public class FruitSpawner : MonoBehaviour
 {
-
     private float _currentDelay = 0f;
 
     private Collider _spawnZone;
@@ -13,10 +12,15 @@ public class FruitSpawner : MonoBehaviour
     public float lifeTime = 7f;
     public float minForce = 7f;
     public float maxForce = 15f;
+    public float BombChance = 0.1f;
 
     public GameObject FruitPrefab1;
     public GameObject FruitPrefab2;
     public GameObject FruitPrefab3;
+    public GameObject BombPrefab;
+
+    private bool _isActive = true;
+
 
     // Start is called before the first frame update
     void Start()
@@ -35,16 +39,34 @@ public class FruitSpawner : MonoBehaviour
         _currentDelay = Random.Range(minDelay, maxDelay);
     }
 
+    public void Stop()
+    {
+        _isActive = false;
+    }
+
     // Update is called once per frame
     void Update()
     {
+        if (!_isActive)
+        {
+            return;
+        }
         MoveDelay();
     }
     private void MoveDelay()
     {
         _currentDelay -= Time.deltaTime;
-        if (_currentDelay < 0 )
+        if (_currentDelay <= 0 )
         {
+            float random = Random.value;
+            if (random < BombChance)
+            {
+                SpawnBomb();
+            }
+            else
+            {
+                SpawnFruit();
+            }
             SpawnFruit();
             SetNewDelay();
         }
@@ -52,11 +74,22 @@ public class FruitSpawner : MonoBehaviour
 
     private void SpawnFruit()
     {
+        GameObject fruitPrefab = GetRandomFruit();
+        SpawnObject(fruitPrefab);
+    }
+
+    private void SpawnBomb()
+    {
+        SpawnObject(BombPrefab);
+    }
+
+    private void SpawnObject(GameObject prefab)
+    {
         Vector3 StartPosition = GetRandomSpawnPosition();
         Quaternion startRotation = Quaternion.Euler(0f, 0f, Random.Range(-angleRangeZ, angleRangeZ));
-        GameObject newFruit = Instantiate(GetRandomFruit(), StartPosition, startRotation);
-        Destroy(newFruit, lifeTime);
-        AddForce(newFruit);
+        GameObject newObject = Instantiate(prefab, StartPosition, startRotation);
+        Destroy(newObject, lifeTime);
+        AddForce(newObject);
     }
 
     private Vector3 GetRandomSpawnPosition()
@@ -89,6 +122,12 @@ public class FruitSpawner : MonoBehaviour
     {
         float force = Random.Range(minForce, maxForce);
         fruit.GetComponent<Rigidbody>().AddForce(fruit.transform.up * force, ForceMode.Impulse);
+    }
+
+    public void Restart()
+    {
+        _isActive = true;
+        SetNewDelay();
     }
     
 }
